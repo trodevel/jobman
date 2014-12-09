@@ -20,49 +20,56 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// $Id: job.h 1252 2014-12-04 19:42:08Z serge $
+// $Id: job.h 1256 2014-12-05 18:43:30Z serge $
 
 #ifndef JOBMAN_I_JOB_H
 #define JOBMAN_I_JOB_H
 
-#include "../utils/types.h"         // uint32
+#include <boost/thread.hpp>             // boost::mutex
+#include "../utils/types.h"             // uint32
+#include "../utils/wrap_mutex.h"        // SCOPE_LOCK
 
-#include "namespace_lib.h"          // NAMESPACE_JOBMAN_START
+#include "namespace_lib.h"              // NAMESPACE_JOBMAN_START
 
 NAMESPACE_JOBMAN_START
 
 class Job
 {
 public:
-    Job( uint32 parent_id, uint32 child_id = 0 );
+    Job( uint32 parent_job_id, uint32 child_job_id = 0 );
 
     // interface IJob
-    uint32 get_parent_id() const;
-    uint32 get_child_id() const;
-    void set_child_id( uint32 id );
+    uint32 get_parent_job_id() const;
+    uint32 get_child_job_id() const;
+    void set_child_job_id( uint32 id );
 
 protected:
-    uint32      parent_id_;
-    uint32      child_id_;
+    mutable boost::mutex    mutex_;
+
+    uint32                  parent_job_id_;
+    uint32                  child_job_id_;
 };
 
-inline Job::Job( uint32 parent_id, uint32 child_id ):
-    parent_id_( parent_id ),
-    child_id_( child_id )
+inline Job::Job( uint32 parent_job_id, uint32 child_job_id ):
+    parent_job_id_( parent_job_id ),
+    child_job_id_( child_job_id )
 {
 }
 
-inline uint32 Job::get_child_id() const
+inline uint32 Job::get_child_job_id() const
 {
-    return child_id_;
+    SCOPE_LOCK( mutex_ );
+    return child_job_id_;
 }
-inline uint32 Job::get_parent_id() const
+inline uint32 Job::get_parent_job_id() const
 {
-    return parent_id_;
+    SCOPE_LOCK( mutex_ );
+    return parent_job_id_;
 }
-inline void Job::set_child_id( uint32 id )
+inline void Job::set_child_job_id( uint32 id )
 {
-    child_id_  = id;
+    SCOPE_LOCK( mutex_ );
+    child_job_id_  = id;
 }
 
 NAMESPACE_JOBMAN_END
