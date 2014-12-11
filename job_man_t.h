@@ -1,4 +1,3 @@
-
 /*
 Generic Job Manager.
 
@@ -20,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// $Id: job_man_t.h 1257 2014-12-05 18:44:16Z serge $
+// $Id: job_man_t.h 1260 2014-12-11 18:38:11Z serge $
 
 #ifndef GENERIC_JOB_MAN_T_H
 #define GENERIC_JOB_MAN_T_H
@@ -63,12 +62,16 @@ public:
 
     bool insert_job( uint32 parent_id, _JOB job );
     bool remove_job( uint32 parent_id );
+    bool assign_child_id( uint32 parent_id, uint32 child_id );
 
     _JOB get_job_by_parent_job_id( uint32 id );
     _JOB get_job_by_child_job_id( uint32 id );
 
     uint32 get_child_id_by_parent_id( uint32 id );
     uint32 get_parent_id_by_child_id( uint32 id );
+
+protected:
+    _JOB get_job_by_parent_job_id__( uint32 id );
 
 protected:
 
@@ -88,7 +91,7 @@ bool JobManT<_JOB>::insert_job( uint32 parent_id, _JOB job )
 
     if( map_parent_id_to_job_.count( parent_id ) > 0 )
     {
-        return false;
+        throw exception( "job " + std::to_string( parent_id ) + " already exists" );
     }
 
     if( map_parent_id_to_job_.insert( typename MapIdToJob::value_type( parent_id, job ) ).second == false )
@@ -115,7 +118,7 @@ bool JobManT<_JOB>::remove_job( uint32 parent_id )
 
         _JOB job = (*it).second;
 
-        child_id  = job->get_child_id();
+        child_id  = job->get_child_job_id();
 
         map_parent_id_to_job_.erase( it );
     }
@@ -130,18 +133,62 @@ bool JobManT<_JOB>::remove_job( uint32 parent_id )
                     " referenced in parent job " + std::to_string( child_id ) );
         }
 
-        JOBMAN_ASSERT( parent_id == (*it).second->get_parent_id() );
+        JOBMAN_ASSERT( parent_id == (*it).second->get_parent_job_id() );
 
         map_child_id_to_job_.erase( it );
     }
 
     return true;
 }
+template <class _JOB>
+bool JobManT<_JOB>::assign_child_id( uint32 parent_id, uint32 child_id )
+{
+    SCOPE_LOCK( mutex_ );
+
+    JOBMAN_ASSERT( parent_id );
+    JOBMAN_ASSERT( child_id );
+
+    _JOB job = get_job_by_parent_job_id__( parent_id );
+
+    uint32 curr_child_id = job->get_child_job_id();
+
+    if( curr_child_id != 0 )
+    {
+        throw exception( "cannot assign child " + std::to_string( child_id ) + " to job id " + std::to_string( parent_id ) +
+                " as it already has a child " + std::to_string( curr_child_id ) );
+    }
+
+    typename MapIdToJob::iterator it = map_child_id_to_job_.find( child_id );
+    if( it != map_child_id_to_job_.end() )
+    {
+        throw fatal_exception(
+                "child job " + std::to_string( child_id ) +
+                " is already present ( parent id " + std::to_string( parent_id ) + " )" );
+    }
+
+    job->set_child_job_id( child_id );
+
+    if( map_child_id_to_job_.insert( typename MapIdToJob::value_type( child_id, job ) ).second == false )
+    {
+        throw fatal_exception( "unknown error - cannot insert child job " + std::to_string( child_id ) );
+    }
+
+    return true;
+
+}
 
 template <class _JOB>
 _JOB JobManT<_JOB>::get_job_by_parent_job_id( uint32 id )
 {
     SCOPE_LOCK( mutex_ );
+
+    return get_job_by_parent_job_id__( id );
+}
+
+template <class _JOB>
+_JOB JobManT<_JOB>::get_job_by_parent_job_id__( uint32 id )
+{
+    // private: no mutex
 
     typename MapIdToJob::iterator it = map_parent_id_to_job_.find( id );
 
@@ -165,13 +212,13 @@ _JOB JobManT<_JOB>::get_job_by_child_job_id( uint32 id )
 template <class _JOB>
 uint32 JobManT<_JOB>::get_child_id_by_parent_id( uint32 id )
 {
-    return get_job_by_parent_job_id( id )->get_child_id();
+    return get_job_by_parent_job_id( id )->get_child_job_id();
 }
 
 template <class _JOB>
 uint32 JobManT<_JOB>::get_parent_id_by_child_id( uint32 id )
 {
-    return get_job_by_child_job_id( id )->get_parent_parent_id();
+    return get_job_by_child_job_id( id )->get_parent_job_id();
 }
 
 
