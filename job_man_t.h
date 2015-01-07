@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// $Id: job_man_t.h 1260 2014-12-11 18:38:11Z serge $
+// $Id: job_man_t.h 1331 2015-01-06 19:04:07Z serge $
 
 #ifndef GENERIC_JOB_MAN_T_H
 #define GENERIC_JOB_MAN_T_H
@@ -62,6 +62,7 @@ public:
 
     bool insert_job( uint32 parent_id, _JOB job );
     bool remove_job( uint32 parent_id );
+    bool remove_job_by_child_id( uint32 child_id );
     bool assign_child_id( uint32 parent_id, uint32 child_id );
 
     _JOB get_job_by_parent_job_id( uint32 id );
@@ -140,6 +141,13 @@ bool JobManT<_JOB>::remove_job( uint32 parent_id )
 
     return true;
 }
+
+template <class _JOB>
+bool JobManT<_JOB>::remove_job_by_child_id( uint32 child_id )
+{
+    return remove_job( get_parent_id_by_child_id( child_id ) );
+}
+
 template <class _JOB>
 bool JobManT<_JOB>::assign_child_id( uint32 parent_id, uint32 child_id )
 {
