@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// $Id: job_man_t.h 1355 2015-01-08 19:37:44Z serge $
+// $Id: job_man_t.h 1364 2015-01-12 17:46:29Z serge $
 
 #ifndef GENERIC_JOB_MAN_T_H
 #define GENERIC_JOB_MAN_T_H
@@ -182,9 +182,9 @@ bool JobManT<_JOB>::assign_child_id( uint32 parent_id, uint32 child_id )
                 " as it already has a child " + std::to_string( curr_child_id ) );
     }
 
-    insert_job_to_child_map( child_id, job );
-
     job->set_child_job_id( child_id );
+
+    insert_job_to_child_map( child_id, job );
 
     return true;
 }
