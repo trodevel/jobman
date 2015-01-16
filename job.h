@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// $Id: job.h 1256 2014-12-05 18:43:30Z serge $
+// $Revision: 1404 $ $Date:: 2015-01-16 #$ $Author: serge $
 
 #ifndef JOBMAN_I_JOB_H
 #define JOBMAN_I_JOB_H
