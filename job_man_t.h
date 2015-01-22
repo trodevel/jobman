@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// $Revision: 1404 $ $Date:: 2015-01-16 #$ $Author: serge $
+// $Revision: 1432 $ $Date:: 2015-01-22 #$ $Author: serge $
 
 #ifndef GENERIC_JOB_MAN_T_H
 #define GENERIC_JOB_MAN_T_H
@@ -28,6 +28,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <stdexcept>                    // std::logic_error
 #include <cassert>                      // assert
 #include <boost/thread.hpp>             // boost::mutex
+#include <algorithm>                    // std::transform
+#include <functional>                   // std::bind
 
 #include "../utils/wrap_mutex.h"        // SCOPE_LOCK
 
@@ -70,6 +72,8 @@ public:
 
     uint32 get_child_id_by_parent_id( uint32 id );
     uint32 get_parent_id_by_child_id( uint32 id );
+
+    void get_all_jobs( std::vector<_JOB> & res ) const;
 
 protected:
     _JOB get_job_by_parent_job_id__( uint32 id );
@@ -257,6 +261,15 @@ uint32 JobManT<_JOB>::get_parent_id_by_child_id( uint32 id )
     return get_job_by_child_job_id( id )->get_parent_job_id();
 }
 
+template <class _JOB>
+void JobManT<_JOB>::get_all_jobs( std::vector<_JOB> & res ) const
+{
+    SCOPE_LOCK( mutex_ );
+
+    std::transform(
+            map_parent_id_to_job_.begin(), map_parent_id_to_job_.end(),
+            std::back_inserter( res ), [] ( const typename MapIdToJob::value_type & p ) { return p.second; } );
+}
 
 NAMESPACE_JOBMAN_END
 
