@@ -20,14 +20,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// $Revision: 1404 $ $Date:: 2015-01-16 #$ $Author: serge $
+// $Revision: 1721 $ $Date:: 2015-04-23 #$ $Author: serge $
 
 #ifndef JOBMAN_I_JOB_H
 #define JOBMAN_I_JOB_H
 
-#include <boost/thread.hpp>             // boost::mutex
+#include <mutex>                        // std::mutex
 #include "../utils/types.h"             // uint32
-#include "../utils/wrap_mutex.h"        // SCOPE_LOCK
+#include "../utils/mutex_helper.h"      // MUTEX_SCOPE_LOCK
 
 #include "namespace_lib.h"              // NAMESPACE_JOBMAN_START
 
@@ -44,7 +44,7 @@ public:
     void set_child_job_id( uint32 id );
 
 protected:
-    mutable boost::mutex    mutex_;
+    mutable std::mutex      mutex_;
 
     uint32                  parent_job_id_;
     uint32                  child_job_id_;
@@ -58,17 +58,17 @@ inline Job::Job( uint32 parent_job_id, uint32 child_job_id ):
 
 inline uint32 Job::get_child_job_id() const
 {
-    SCOPE_LOCK( mutex_ );
+    MUTEX_SCOPE_LOCK( mutex_ );
     return child_job_id_;
 }
 inline uint32 Job::get_parent_job_id() const
 {
-    SCOPE_LOCK( mutex_ );
+    MUTEX_SCOPE_LOCK( mutex_ );
     return parent_job_id_;
 }
 inline void Job::set_child_job_id( uint32 id )
 {
-    SCOPE_LOCK( mutex_ );
+    MUTEX_SCOPE_LOCK( mutex_ );
     child_job_id_  = id;
 }
 

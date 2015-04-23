@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// $Revision: 1432 $ $Date:: 2015-01-22 #$ $Author: serge $
+// $Revision: 1721 $ $Date:: 2015-04-23 #$ $Author: serge $
 
 #ifndef GENERIC_JOB_MAN_T_H
 #define GENERIC_JOB_MAN_T_H
@@ -27,11 +27,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <map>                          // std::map
 #include <stdexcept>                    // std::logic_error
 #include <cassert>                      // assert
-#include <boost/thread.hpp>             // boost::mutex
+#include <mutex>                        // std::mutex
 #include <algorithm>                    // std::transform
 #include <functional>                   // std::bind
 
-#include "../utils/wrap_mutex.h"        // SCOPE_LOCK
+#include "../utils/mutex_helper.h"      // MUTEX_SCOPE_LOCK
 
 #define JOBMAN_ASSERT(_x)               assert(_x)
 #include "namespace_lib.h"              // NAMESPACE_JOBMAN_START
@@ -84,7 +84,7 @@ protected:
     typedef std::map<uint32, _JOB>   MapIdToJob;
 
 protected:
-    mutable boost::mutex        mutex_;
+    mutable std::mutex          mutex_;
 
     MapIdToJob                  map_parent_id_to_job_;
     MapIdToJob                  map_child_id_to_job_;
@@ -103,7 +103,7 @@ JobManT<_JOB>::~JobManT()
 template <class _JOB>
 bool JobManT<_JOB>::insert_job( uint32 parent_id, _JOB job )
 {
-    SCOPE_LOCK( mutex_ );
+    MUTEX_SCOPE_LOCK( mutex_ );
 
     if( map_parent_id_to_job_.count( parent_id ) > 0 )
     {
@@ -126,7 +126,7 @@ bool JobManT<_JOB>::insert_job( uint32 parent_id, _JOB job )
 template <class _JOB>
 bool JobManT<_JOB>::remove_job( uint32 parent_id )
 {
-    SCOPE_LOCK( mutex_ );
+    MUTEX_SCOPE_LOCK( mutex_ );
 
     uint32 child_id  = 0;
 
@@ -171,7 +171,7 @@ bool JobManT<_JOB>::remove_job_by_child_id( uint32 child_id )
 template <class _JOB>
 bool JobManT<_JOB>::assign_child_id( uint32 parent_id, uint32 child_id )
 {
-    SCOPE_LOCK( mutex_ );
+    MUTEX_SCOPE_LOCK( mutex_ );
 
     JOBMAN_ASSERT( parent_id );
     JOBMAN_ASSERT( child_id );
@@ -196,7 +196,7 @@ bool JobManT<_JOB>::assign_child_id( uint32 parent_id, uint32 child_id )
 template <class _JOB>
 _JOB JobManT<_JOB>::get_job_by_parent_job_id( uint32 id )
 {
-    SCOPE_LOCK( mutex_ );
+    MUTEX_SCOPE_LOCK( mutex_ );
 
     return get_job_by_parent_job_id__( id );
 }
@@ -240,7 +240,7 @@ bool JobManT<_JOB>::insert_job_to_child_map( uint32 child_id, _JOB job )
 template <class _JOB>
 _JOB JobManT<_JOB>::get_job_by_child_job_id( uint32 id )
 {
-    SCOPE_LOCK( mutex_ );
+    MUTEX_SCOPE_LOCK( mutex_ );
 
     typename MapIdToJob::iterator it = map_child_id_to_job_.find( id );
 
@@ -264,7 +264,7 @@ uint32 JobManT<_JOB>::get_parent_id_by_child_id( uint32 id )
 template <class _JOB>
 void JobManT<_JOB>::get_all_jobs( std::vector<_JOB> & res ) const
 {
-    SCOPE_LOCK( mutex_ );
+    MUTEX_SCOPE_LOCK( mutex_ );
 
     std::transform(
             map_parent_id_to_job_.begin(), map_parent_id_to_job_.end(),
