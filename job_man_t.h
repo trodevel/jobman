@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// $Revision: 1721 $ $Date:: 2015-04-23 #$ $Author: serge $
+// $Revision: 2578 $ $Date:: 2015-09-18 #$ $Author: serge $
 
 #ifndef GENERIC_JOB_MAN_T_H
 #define GENERIC_JOB_MAN_T_H
@@ -30,6 +30,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <mutex>                        // std::mutex
 #include <algorithm>                    // std::transform
 #include <functional>                   // std::bind
+#include <stdint.h>                     // uint32_t
 
 #include "../utils/mutex_helper.h"      // MUTEX_SCOPE_LOCK
 
@@ -62,26 +63,26 @@ public:
     JobManT();
     ~JobManT();
 
-    bool insert_job( uint32 parent_id, _JOB job );
-    bool remove_job( uint32 parent_id );
-    bool remove_job_by_child_id( uint32 child_id );
-    bool assign_child_id( uint32 parent_id, uint32 child_id );
+    bool insert_job( uint32_t parent_id, _JOB job );
+    bool remove_job( uint32_t parent_id );
+    bool remove_job_by_child_id( uint32_t child_id );
+    bool assign_child_id( uint32_t parent_id, uint32_t child_id );
 
-    _JOB get_job_by_parent_job_id( uint32 id );
-    _JOB get_job_by_child_job_id( uint32 id );
+    _JOB get_job_by_parent_job_id( uint32_t id );
+    _JOB get_job_by_child_job_id( uint32_t id );
 
-    uint32 get_child_id_by_parent_id( uint32 id );
-    uint32 get_parent_id_by_child_id( uint32 id );
+    uint32_t get_child_id_by_parent_id( uint32_t id );
+    uint32_t get_parent_id_by_child_id( uint32_t id );
 
     void get_all_jobs( std::vector<_JOB> & res ) const;
 
 protected:
-    _JOB get_job_by_parent_job_id__( uint32 id );
-    bool insert_job_to_child_map( uint32 child_id, _JOB job );
+    _JOB get_job_by_parent_job_id__( uint32_t id );
+    bool insert_job_to_child_map( uint32_t child_id, _JOB job );
 
 protected:
 
-    typedef std::map<uint32, _JOB>   MapIdToJob;
+    typedef std::map<uint32_t, _JOB>   MapIdToJob;
 
 protected:
     mutable std::mutex          mutex_;
@@ -101,7 +102,7 @@ JobManT<_JOB>::~JobManT()
 }
 
 template <class _JOB>
-bool JobManT<_JOB>::insert_job( uint32 parent_id, _JOB job )
+bool JobManT<_JOB>::insert_job( uint32_t parent_id, _JOB job )
 {
     MUTEX_SCOPE_LOCK( mutex_ );
 
@@ -115,7 +116,7 @@ bool JobManT<_JOB>::insert_job( uint32 parent_id, _JOB job )
         throw fatal_exception( "cannot insert parent job " + std::to_string( parent_id ) );
     }
 
-    uint32 child_id = job->get_child_job_id();
+    uint32_t child_id = job->get_child_job_id();
 
     if( child_id != 0 )
         insert_job_to_child_map( child_id, job );
@@ -124,11 +125,11 @@ bool JobManT<_JOB>::insert_job( uint32 parent_id, _JOB job )
 }
 
 template <class _JOB>
-bool JobManT<_JOB>::remove_job( uint32 parent_id )
+bool JobManT<_JOB>::remove_job( uint32_t parent_id )
 {
     MUTEX_SCOPE_LOCK( mutex_ );
 
-    uint32 child_id  = 0;
+    uint32_t child_id  = 0;
 
     {
         typename MapIdToJob::iterator it = map_parent_id_to_job_.find( parent_id );
@@ -163,13 +164,13 @@ bool JobManT<_JOB>::remove_job( uint32 parent_id )
 }
 
 template <class _JOB>
-bool JobManT<_JOB>::remove_job_by_child_id( uint32 child_id )
+bool JobManT<_JOB>::remove_job_by_child_id( uint32_t child_id )
 {
     return remove_job( get_parent_id_by_child_id( child_id ) );
 }
 
 template <class _JOB>
-bool JobManT<_JOB>::assign_child_id( uint32 parent_id, uint32 child_id )
+bool JobManT<_JOB>::assign_child_id( uint32_t parent_id, uint32_t child_id )
 {
     MUTEX_SCOPE_LOCK( mutex_ );
 
@@ -178,7 +179,7 @@ bool JobManT<_JOB>::assign_child_id( uint32 parent_id, uint32 child_id )
 
     _JOB job = get_job_by_parent_job_id__( parent_id );
 
-    uint32 curr_child_id = job->get_child_job_id();
+    uint32_t curr_child_id = job->get_child_job_id();
 
     if( curr_child_id != 0 )
     {
@@ -194,7 +195,7 @@ bool JobManT<_JOB>::assign_child_id( uint32 parent_id, uint32 child_id )
 }
 
 template <class _JOB>
-_JOB JobManT<_JOB>::get_job_by_parent_job_id( uint32 id )
+_JOB JobManT<_JOB>::get_job_by_parent_job_id( uint32_t id )
 {
     MUTEX_SCOPE_LOCK( mutex_ );
 
@@ -202,7 +203,7 @@ _JOB JobManT<_JOB>::get_job_by_parent_job_id( uint32 id )
 }
 
 template <class _JOB>
-_JOB JobManT<_JOB>::get_job_by_parent_job_id__( uint32 id )
+_JOB JobManT<_JOB>::get_job_by_parent_job_id__( uint32_t id )
 {
     // private: no mutex
 
@@ -214,7 +215,7 @@ _JOB JobManT<_JOB>::get_job_by_parent_job_id__( uint32 id )
 }
 
 template <class _JOB>
-bool JobManT<_JOB>::insert_job_to_child_map( uint32 child_id, _JOB job )
+bool JobManT<_JOB>::insert_job_to_child_map( uint32_t child_id, _JOB job )
 {
     // private: no mutex lock
 
@@ -238,7 +239,7 @@ bool JobManT<_JOB>::insert_job_to_child_map( uint32 child_id, _JOB job )
 }
 
 template <class _JOB>
-_JOB JobManT<_JOB>::get_job_by_child_job_id( uint32 id )
+_JOB JobManT<_JOB>::get_job_by_child_job_id( uint32_t id )
 {
     MUTEX_SCOPE_LOCK( mutex_ );
 
@@ -250,13 +251,13 @@ _JOB JobManT<_JOB>::get_job_by_child_job_id( uint32 id )
 }
 
 template <class _JOB>
-uint32 JobManT<_JOB>::get_child_id_by_parent_id( uint32 id )
+uint32_t JobManT<_JOB>::get_child_id_by_parent_id( uint32_t id )
 {
     return get_job_by_parent_job_id( id )->get_child_job_id();
 }
 
 template <class _JOB>
-uint32 JobManT<_JOB>::get_parent_id_by_child_id( uint32 id )
+uint32_t JobManT<_JOB>::get_parent_id_by_child_id( uint32_t id )
 {
     return get_job_by_child_job_id( id )->get_parent_job_id();
 }
