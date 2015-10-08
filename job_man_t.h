@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// $Revision: 2578 $ $Date:: 2015-09-18 #$ $Author: serge $
+// $Revision: 2697 $ $Date:: 2015-10-07 #$ $Author: serge $
 
 #ifndef GENERIC_JOB_MAN_T_H
 #define GENERIC_JOB_MAN_T_H
@@ -69,6 +69,7 @@ public:
     bool assign_child_id( uint32_t parent_id, uint32_t child_id );
 
     _JOB get_job_by_parent_job_id( uint32_t id );
+    const _JOB get_job_by_parent_job_id( uint32_t id ) const;
     _JOB get_job_by_child_job_id( uint32_t id );
 
     uint32_t get_child_id_by_parent_id( uint32_t id );
@@ -78,6 +79,7 @@ public:
 
 protected:
     _JOB get_job_by_parent_job_id__( uint32_t id );
+    const _JOB get_job_by_parent_job_id__( uint32_t id ) const;
     bool insert_job_to_child_map( uint32_t child_id, _JOB job );
 
 protected:
@@ -203,11 +205,31 @@ _JOB JobManT<_JOB>::get_job_by_parent_job_id( uint32_t id )
 }
 
 template <class _JOB>
+const _JOB JobManT<_JOB>::get_job_by_parent_job_id( uint32_t id ) const
+{
+    MUTEX_SCOPE_LOCK( mutex_ );
+
+    return get_job_by_parent_job_id__( id );
+}
+
+template <class _JOB>
 _JOB JobManT<_JOB>::get_job_by_parent_job_id__( uint32_t id )
 {
     // private: no mutex
 
     typename MapIdToJob::iterator it = map_parent_id_to_job_.find( id );
+
+    JOBMAN_ASSERT( it != map_parent_id_to_job_.end() );
+
+    return (*it).second;
+}
+
+template <class _JOB>
+const _JOB JobManT<_JOB>::get_job_by_parent_job_id__( uint32_t id ) const
+{
+    // private: no mutex
+
+    typename MapIdToJob::const_iterator it = map_parent_id_to_job_.find( id );
 
     JOBMAN_ASSERT( it != map_parent_id_to_job_.end() );
 

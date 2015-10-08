@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// $Revision: 2577 $ $Date:: 2015-09-18 #$ $Author: serge $
+// $Revision: 2646 $ $Date:: 2015-09-29 #$ $Author: serge $
 
 #ifndef JOBMAN_I_JOB_H
 #define JOBMAN_I_JOB_H
