@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// $Revision: 2697 $ $Date:: 2015-10-07 #$ $Author: serge $
+// $Revision: 2828 $ $Date:: 2015-11-20 #$ $Author: serge $
 
 #ifndef GENERIC_JOB_MAN_T_H
 #define GENERIC_JOB_MAN_T_H
@@ -68,6 +68,7 @@ public:
     bool remove_job_by_child_id( uint32_t child_id );
     bool assign_child_id( uint32_t parent_id, uint32_t child_id );
 
+    bool has_parent_job_id( uint32_t id ) const;
     _JOB get_job_by_parent_job_id( uint32_t id );
     const _JOB get_job_by_parent_job_id( uint32_t id ) const;
     _JOB get_job_by_child_job_id( uint32_t id );
@@ -194,6 +195,14 @@ bool JobManT<_JOB>::assign_child_id( uint32_t parent_id, uint32_t child_id )
     insert_job_to_child_map( child_id, job );
 
     return true;
+}
+
+template <class _JOB>
+bool JobManT<_JOB>::has_parent_job_id( uint32_t id ) const
+{
+    MUTEX_SCOPE_LOCK( mutex_ );
+
+    return map_parent_id_to_job_.count( id ) > 0;
 }
 
 template <class _JOB>
