@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// $Revision: 5667 $ $Date:: 2017-02-04 #$ $Author: serge $
+// $Revision: 5767 $ $Date:: 2017-02-13 #$ $Author: serge $
 
 #ifndef GENERIC_JOB_MAN_T_H
 #define GENERIC_JOB_MAN_T_H
@@ -193,6 +193,8 @@ bool JobManT<JOB,JOB_ID>::unassign_child_id_from_id( JOB_ID id )
 
     auto child_id = it->second;
 
+    map_id_to_child_id_.erase( it );
+
     auto it_child = map_child_id_to_id_.find( child_id );
 
     if( it_child == map_child_id_to_id_.end() )
@@ -202,6 +204,8 @@ bool JobManT<JOB,JOB_ID>::unassign_child_id_from_id( JOB_ID id )
             " with parent id " + std::to_string( id ) +
             " not found in the child map" );
     }
+
+    map_child_id_to_id_.erase( it_child );
 
     return false;
 }
