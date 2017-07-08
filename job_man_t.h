@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// $Revision: 5767 $ $Date:: 2017-02-13 #$ $Author: serge $
+// $Revision: 7098 $ $Date:: 2017-07-07 #$ $Author: serge $
 
 #ifndef GENERIC_JOB_MAN_T_H
 #define GENERIC_JOB_MAN_T_H
@@ -65,6 +65,7 @@ public:
     ~JobManT();
 
     bool insert_job( JOB_ID id, JOB job, JOB_ID child_id = 0 );
+    bool update_job( JOB_ID id, JOB job );
     bool remove_job( JOB_ID id );
     template <typename ITERATOR>
     bool remove_jobs( ITERATOR begin, ITERATOR end );
@@ -116,6 +117,21 @@ bool JobManT<JOB,JOB_ID>::insert_job( JOB_ID id, JOB job, JOB_ID child_id )
 
     if( child_id != 0 )
         assign_id_with_child_id( id, child_id );
+
+    return true;
+}
+
+template <class JOB, class JOB_ID>
+bool JobManT<JOB,JOB_ID>::update_job( JOB_ID id, JOB job )
+{
+    auto it = map_id_to_job_.find( id );
+
+    if( it == map_id_to_job_.end() )
+    {
+        throw fatal_exception( "job " + std::to_string( id ) + " not found" );
+    }
+
+    it->second = job;
 
     return true;
 }
